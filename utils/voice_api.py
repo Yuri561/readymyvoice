@@ -27,7 +27,8 @@ def txt_to_speech(command, textbox, voice_id="JBFqnCBsd6RMkjVDRZzb"):
                 f.write(chunk)
 
         # Update the textbox with a success message
-        textbox.insert("end", f"Conversion successful! Saved to {file_path}\n")
+        textbox.insert("end", "\n")
+        textbox.insert("end", f"\nConversion successful! Saved to {file_path}\n")
         return file_path
     except Exception as e:
         # Update the textbox with an error message

@@ -11,9 +11,11 @@ def intro_txt(text, textbox):
 #-------------code done by defJu--------------------#
 def process_command(command, textbox):
     """Processes user input commands with animation."""
+    print(f"Received command: {repr(command)}")  # Debugging: Print the command for verification
     command = command.lower().strip()
-    textbox.insert("end", "\n")  # Insert an extra newline for spacing
-    textbox.update()
+    if textbox.get("end-2c", "end-1c") != "\n":  # Check if the last character is not a newline
+        textbox.insert("end", "\n")
+
     if command == "help":
         # Display help information with animation
         help_message = (
@@ -27,10 +29,16 @@ def process_command(command, textbox):
             "7. Share: Share your voiceover.\n"
         )
         intro_txt(help_message, textbox)
+        intro_txt("This message will self-destruct in 15 seconds...\n", textbox)
+        textbox.after(15000, lambda: textbox.delete("1.0", "end"))
     elif command == "exit":
         # Display exit message with animation
         intro_txt("Exiting the application...\n", textbox)
-        textbox.after(1000, textbox.quit)
+        textbox.after(1000, lambda: textbox.quit())  # Use `lambda` to avoid immediate execution
+
+    elif command == "clear":
+        textbox.delete("1.0", "end")
+
     else:
         # Display invalid command feedback with animation
         intro_txt(f"Unknown command: {command}\n", textbox)

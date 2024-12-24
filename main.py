@@ -1,9 +1,17 @@
 import customtkinter as ctk
 from utils.intro_txt import intro_txt, process_command
 from utils.voice_api import txt_to_speech
-from functools import partial
 from audio_files.audio_script import play_audio
 
+# Mapping of displayed names to voice IDs
+#------- Done by defju() ---------#
+voice_mapping = {
+    "Aria": "9BWtsMINqrJLrRac0k9x",
+    "Saarah": "EXAVITQu4vr4xnSDxMaL",
+    "Roger": "CwhRBWXzGAHq8TQ4Fs17",
+    "Charlie": "IKne3meq5aSn9XLyUdCD",
+    "George": "JBFqnCBsd6RMkjVDRZzb"
+}
 
 def handle_enter(event=None):
     """Handles Enter key press to process the last command in the textbox."""
@@ -13,8 +21,8 @@ def handle_enter(event=None):
 def on_convert_button_click():
     """Handles the Convert button click to process text-to-speech."""
     user_command = input_text.get("1.0", "end-1c").strip()  # Get all text from the textbox
-    selected_voice = voices_combobox.get()  # Get selected voice from combobox
-    voice_id = "JBFqnCBsd6RMkjVDRZzb"  # Default voice ID (map this to `selected_voice` later if needed)
+    selected_voice = voices_combobox.get()  # Get the selected voice name
+    voice_id = voice_mapping.get(selected_voice, "JBFqnCBsd6RMkjVDRZzb")  # Default voice ID if none selected
 
     # Convert text to speech and save the audio file
     saved_file_path = txt_to_speech(user_command, input_text, voice_id)
@@ -61,7 +69,7 @@ sidebar_frame.grid(row=0, column=0, rowspan=6, sticky="nsew", padx=(0, 10), pady
 convert_button = ctk.CTkButton(
     sidebar_frame,
     text="Convert",
-    command=on_convert_button_click,  # Pass the function reference, do not call it
+    command=on_convert_button_click,
     font=("Helvetica", 20),
     width=120,
     height=50,
@@ -72,9 +80,10 @@ convert_button = ctk.CTkButton(
 )
 convert_button.pack(pady=10, padx=10)
 
+# ComboBox for voice selection
 voices_combobox = ctk.CTkComboBox(
     sidebar_frame,
-    values=["Voice 1", "Voice 2", "Voice 3", "Voice 4"],  # Map these to specific voice IDs
+    values=list(voice_mapping.keys()),  # Use the names from the voice_mapping
     width=120,
     height=50,
     border_color='#DAA520',
@@ -91,7 +100,7 @@ play_button = ctk.CTkButton(
     text="▶ Play",
     width=120,
     height=50,
-    command=play_audio_from_button,  # Pass the function reference
+    command=play_audio_from_button,
     fg_color="blue",
     hover_color="darkblue",
     corner_radius=15,
@@ -99,7 +108,7 @@ play_button = ctk.CTkButton(
     cursor="hand2"
 )
 play_button.pack(pady=10, padx=10)
-play_button.saved_file_path = None  # Initialize the saved_file_path attribute
+play_button.saved_file_path = None
 
 download_button = ctk.CTkButton(sidebar_frame, text="Download",
                                 width=120, height=50,
@@ -133,15 +142,16 @@ share_button.pack(pady=10, padx=10)
 input_text = ctk.CTkTextbox(main_frame, width=400, height=400,
                             corner_radius=10, font=("Helvetica", 18))
 input_text.grid(row=0, column=1, rowspan=6, sticky="nsew", padx=10, pady=10)
-input_text.bind("<Return>", handle_enter)  # Bind Enter key to process commands
+input_text.bind("<Return>", handle_enter)
 
-# Display intro text in the textbox
-app.after(100, lambda: intro_txt(
-    "Welcome to Ready My Voice...\n"
-    "Type 'help' for a quick tour of the app\n"
-    "Type 'exit' to close the app\n or start typing to begin...",
-    input_text
-))
+intro_message = """Welcome to Ready My Voice...
+Type 'help' for a quick tour of the app
+Type 'exit' to close the app\n or start typing to begin...\n
+This message will self-destruct in 3 seconds"""
+
+# Display intro text and schedule clearing
+app.after(100, lambda: intro_txt(intro_message, input_text))
+input_text.after(15000, lambda: input_text.delete("1.0", "end"))  # Clear after 15 seconds
 
 # Run the app
 if __name__ == '__main__':
