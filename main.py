@@ -1,13 +1,15 @@
 import customtkinter as ctk
 from utils.intro_txt import intro_txt, process_command
 from utils.voice_api import txt_to_speech
-from audio_files.audio_script import play_audio, show_audios
+from utils.voice_api import speak_text
+from audio_files.audio_script import play_audio
+
 import os
-from tkinter import Listbox
+import textwrap
 
 # Mapping of displayed names to voice IDs
 voice_mapping = {
-    "Aria": "9BWtsMINqrJLrRac0k9x",
+    "Laura": "FGY2WhTYpPnrIDTdsKH5",
     "Saarah": "EXAVITQu4vr4xnSDxMaL",
     "Roger": "CwhRBWXzGAHq8TQ4Fs17",
     "Charlie": "IKne3meq5aSn9XLyUdCD",
@@ -25,7 +27,7 @@ def on_convert_button_click():
     """Handles the Convert button click to process text-to-speech."""
     user_command = input_text.get("1.0", "end-1c").strip()  # Get all text from the textbox
     selected_voice = voices_combobox.get()  # Get the selected voice name
-    voice_id = voice_mapping.get(selected_voice, "JBFqnCBsd6RMkjVDRZzb")  # Default voice ID if none selected
+    voice_id = voice_mapping.get(selected_voice)  # Default voice ID if none selected
 
     # Convert text to speech and save the audio file
     saved_file_path = txt_to_speech(user_command, input_text, voice_id)
@@ -252,11 +254,21 @@ def initialize_main_content():
     input_text.bind("<Return>", handle_enter)
 
     # Display intro text
-    intro_message = """Welcome to Ready My Voice...
-    Type 'help' for a quick tour of the app
-    Type 'exit' to close the app\n or start typing to begin...\n"""
+    intro_message = textwrap.dedent("""\
+        Welcome to Ready My Voice – your personalized voiceover assistant!
+        Here's how you can make the most of your experience:
+        - Type 'help' to explore the app's features and take a quick tour of what Ready My Voice can do.
+        - Type 'exit' anytime to close the application if you're done for now.
+        - Type 'home' to return to this menu and get back on track quickly.
+        - Type 'clear' to wipe the console and start fresh whenever you need a clean slate.
+
+        Your journey into seamless voiceover creation starts here!
+        Let's dive in and make your words come alive in ways you've never imagined!
+        """)
+
     app.after(100, lambda: intro_txt(intro_message, input_text))
-    input_text.after(15000, lambda: input_text.delete("1.0", "end"))  # Clear after 15 seconds
+    app.after(1000, lambda: speak_text(intro_message)) # Speak intro
+    # input_text.after(15000, lambda: input_text.delete("1.0", "end"))  # Clear after 15 seconds
 
 
 # Initialize the main window

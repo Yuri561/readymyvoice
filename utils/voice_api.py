@@ -1,7 +1,10 @@
+import io
+import threading
 from elevenlabs.client import ElevenLabs
 import os
 from datetime import datetime
 from tkinter import messagebox
+import pygame
 
 client = ElevenLabs(
     api_key='sk_a80e88c6d33e269b27c55e21c709e7cf67c36a8277d67fc6'
@@ -38,3 +41,34 @@ def txt_to_speech(command, textbox, voice_id="JBFqnCBsd6RMkjVDRZzb"):
         messagebox.showerror(title="Error", message=f"an error has occurred please try again {e}")
         textbox.insert("end", "\n")  # Add a newline after the text
 
+def speak_text(text, voice_id="pFZP5JQG7iQjIQuC4Bku"):
+    def play_audio():
+        try:
+            # Call ElevenLabs API
+            response = client.text_to_speech.convert(
+                voice_id=voice_id,
+                output_format="mp3_44100_128",
+                text=text,
+                model_id="eleven_multilingual_v2",
+            )
+
+            # Initialize Pygame mixer
+            pygame.mixer.init()
+            # Create a BytesIO object for direct playback
+            audio_data = io.BytesIO()
+            for chunk in response:
+                audio_data.write(chunk)
+
+            # Load and play the audio
+            audio_data.seek(0)  # Reset pointer to the start of the stream
+            pygame.mixer.music.load(audio_data, "mp3")
+            pygame.mixer.music.play()
+
+            # Wait for playback to finish
+            while pygame.mixer.music.get_busy():
+                pygame.time.wait(100)
+        except Exception as e:
+            print(f"Error speaking text: {e}")
+
+    # Run the audio playback in a separate thread
+    threading.Thread(target=play_audio, daemon=True).start()
