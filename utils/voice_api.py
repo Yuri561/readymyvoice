@@ -7,7 +7,7 @@ from tkinter import messagebox
 import pygame
 
 client = ElevenLabs(
-    api_key='sk_a80e88c6d33e269b27c55e21c709e7cf67c36a8277d67fc6'
+    api_key='sk_14896d0859b0623878a8832e727864beebbd6e47cb7e7739'
 )
 
 def txt_to_speech(command, textbox, voice_id="JBFqnCBsd6RMkjVDRZzb"):
