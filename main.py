@@ -3,7 +3,6 @@ from utils.intro_txt import intro_txt, process_command
 from utils.voice_api import txt_to_speech
 from utils.voice_api import speak_text
 from audio_files.audio_script import play_audio
-
 import os
 import textwrap
 
@@ -209,7 +208,7 @@ def initialize_main_content():
         cursor="hand2"
     )
     play_button.pack(pady=10, padx=10)
-    play_button.saved_file_path = None  # Initialize with no file path
+    play_button.saved_file_path = None
 
     # Media button to switch to Media screen
     media_button = ctk.CTkButton(
@@ -247,7 +246,7 @@ def initialize_main_content():
                                  cursor="hand2")
     share_button.pack(pady=10, padx=10)
     # Main Textbox
-    global input_text  # Ensure input_text is accessible globally
+    global input_text
     input_text = ctk.CTkTextbox(main_frame, width=400, height=400,
                                 corner_radius=10, font=("Helvetica", 18))
     input_text.grid(row=0, column=1, rowspan=6, sticky="nsew", padx=10, pady=10)
@@ -261,14 +260,11 @@ def initialize_main_content():
         - Type 'exit' anytime to close the application if you're done for now.
         - Type 'home' to return to this menu and get back on track quickly.
         - Type 'clear' to wipe the console and start fresh whenever you need a clean slate.
-
-        Your journey into seamless voiceover creation starts here!
-        Let's dive in and make your words come alive in ways you've never imagined!
         """)
 
     app.after(100, lambda: intro_txt(intro_message, input_text))
-    app.after(1000, lambda: speak_text(intro_message)) # Speak intro
-    # input_text.after(15000, lambda: input_text.delete("1.0", "end"))  # Clear after 15 seconds
+    app.after(100, lambda: speak_text(intro_message)) # Speak intro
+    input_text.after(50000, lambda: input_text.delete("1.0", "end"))  # Clear after 60sec
 
 
 # Initialize the main window
