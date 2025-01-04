@@ -26,13 +26,7 @@ def play_audio(file_path):
 
 
 def show_audios(path, textbox):
-    """
-    Lists all .mp3 files in the specified folder and displays them in a clickable format within a textbox.
 
-    Parameters:
-        path (str): Path to the folder containing MP3 files.
-        textbox: A tkinter text widget to display the list.
-    """
     if not os.path.exists(path):
         intro_txt("Error: The folder does not exist.\n", textbox)
         return

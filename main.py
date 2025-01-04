@@ -1,13 +1,22 @@
 import customtkinter as ctk
+from tkinter import filedialog
+from utils.download_file import download_file
 from utils.intro_txt import intro_txt, process_command
-from utils.voice_api import txt_to_speech
-from utils.voice_api import speak_text
+from utils.voice_api import txt_to_speech, speak_text
 from audio_files.audio_script import play_audio
 import os
 import textwrap
 
-# Mapping of displayed names to voice IDs
-voice_mapping = {
+# Constants
+APP_TITLE = "Ready My Voice"
+WINDOW_WIDTH = 800
+WINDOW_HEIGHT = 600
+SIDEBAR_BUTTON_DIMENSIONS = {"width": 120, "height": 50}
+FONT_LARGE = ("Helvetica", 20)
+FONT_MEDIUM = ("Helvetica", 18)
+
+# Voice mapping
+VOICE_MAPPING = {
     "Laura": "FGY2WhTYpPnrIDTdsKH5",
     "Saarah": "EXAVITQu4vr4xnSDxMaL",
     "Roger": "CwhRBWXzGAHq8TQ4Fs17",
@@ -15,33 +24,148 @@ voice_mapping = {
     "George": "JBFqnCBsd6RMkjVDRZzb"
 }
 
+# Initialize main window
+app = ctk.CTk()
+app.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
+app.resizable(width=False, height=False)
+app.title(APP_TITLE)
+
+# Global variables for shared components
+main_frame = None
+input_text = None
+voices_combobox = None
+play_button = None
+
 
 def handle_enter(event=None):
-    """Handles Enter key press to process the last command in the textbox."""
-    command = input_text.get("end-2l linestart", "end-1c").strip()  # Get the last line
-    process_command(command, input_text)  # Process the command
+    """Process the last entered command."""
+    command = input_text.get("end-2l linestart", "end-1c").strip()
+    process_command(command, input_text)
 
 
 def on_convert_button_click():
-    """Handles the Convert button click to process text-to-speech."""
-    user_command = input_text.get("1.0", "end-1c").strip()  # Get all text from the textbox
-    selected_voice = voices_combobox.get()  # Get the selected voice name
-    voice_id = voice_mapping.get(selected_voice)  # Default voice ID if none selected
+    """Handle text-to-speech conversion."""
+    user_command = input_text.get("1.0", "end-1c").strip()
+    selected_voice = voices_combobox.get()
+    voice_id = VOICE_MAPPING.get(selected_voice, None)
 
-    # Convert text to speech and save the audio file
+    # Convert text to speech
     saved_file_path = txt_to_speech(user_command, input_text, voice_id)
 
     if saved_file_path:
-        play_button.saved_file_path = saved_file_path  # Save the file path for playback
+        play_button.saved_file_path = saved_file_path  # Save path for playback
 
 
 def play_audio_from_button():
-    """Plays the audio file saved by the Convert button."""
+    """Play the saved audio file."""
     saved_file_path = getattr(play_button, 'saved_file_path', None)
     if saved_file_path:
         play_audio(saved_file_path)
     else:
         print("No audio file selected to play.")
+
+
+def clear_frame(frame):
+    """Remove all widgets from a frame."""
+    for widget in frame.winfo_children():
+        widget.destroy()
+
+
+def initialize_sidebar(parent_frame):
+    """Create and initialize the sidebar with buttons."""
+    sidebar_frame = ctk.CTkFrame(parent_frame, fg_color="transparent", corner_radius=10)
+    sidebar_frame.grid(row=0, column=0, rowspan=6, sticky="nsew", padx=(0, 10), pady=10)
+
+    # Sidebar Buttons
+    button_configs = [
+        {"text": "Convert", "command": on_convert_button_click, "color": "#FFC107"},
+        {"text": "▶ Play", "command": play_audio_from_button, "color": "#FFC107"},
+        {"text": "Medias", "command": show_media_screen, "color": "#FFC107"},
+        {"text": "Download", "command": lambda: download_file(play_button.saved_file_path, filedialog, input_text), "color": "#FFC107"},
+        {"text": "New", "command": lambda: initialize_main_screen(), "color": "#FFC107"},
+        {"text": "Exit", "command": lambda: app.destroy(), "color": "#FFC107"}
+    ]
+
+    global voices_combobox, play_button
+    for config in button_configs:
+        button = ctk.CTkButton(
+            sidebar_frame,
+            text=config["text"],
+            command=config["command"],
+            font=FONT_LARGE,
+            fg_color=config["color"],
+            hover_color=config["color"],
+            text_color='black',
+            corner_radius=15,
+            cursor="hand2",
+            **SIDEBAR_BUTTON_DIMENSIONS
+        )
+        button.pack(pady=10, padx=10)
+
+    # Add Voice Selection Combobox
+    voices_combobox = ctk.CTkComboBox(
+        sidebar_frame,
+        values=list(VOICE_MAPPING.keys()),
+        width=SIDEBAR_BUTTON_DIMENSIONS["width"],
+        height=SIDEBAR_BUTTON_DIMENSIONS["height"],
+        border_color='#DAA520',
+        corner_radius=15,
+        fg_color="gray",
+        button_color="#DAA520",
+        button_hover_color="#FFA500",
+    )
+    voices_combobox.pack(pady=10, padx=10)
+
+    # Play button
+    # play_button = ctk.CTkButton(
+    #     sidebar_frame,
+    #     text="▶ Play",
+    #     command=play_audio_from_button,
+    #     font=FONT_LARGE,
+    #     fg_color="blue",
+    #     hover_color="darkblue",
+    #     corner_radius=15,
+    #     cursor="hand2",
+    #     **SIDEBAR_BUTTON_DIMENSIONS
+    # )
+    # play_button.pack(pady=10, padx=10)
+    # play_button.saved_file_path = None
+
+
+def initialize_main_screen():
+    """Set up the main application screen."""
+    clear_frame(main_frame)
+
+    # Configure layout
+    main_frame.grid_columnconfigure((0, 1), weight=1)
+    main_frame.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=1)
+
+    # Initialize sidebar
+    initialize_sidebar(main_frame)
+
+    # Initialize main text area
+    global input_text
+    input_text = ctk.CTkTextbox(
+        main_frame,
+        width=400,
+        height=400,
+        corner_radius=10,
+        font=FONT_MEDIUM
+    )
+    input_text.grid(row=0, column=1, rowspan=6, sticky="nsew", padx=10, pady=10)
+    input_text.bind("<Return>", handle_enter)
+
+    # Intro message
+    intro_message = textwrap.dedent("""\
+        Welcome to Ready My Voice – your personalized voiceover assistant!
+        - Type 'help' for a quick tour.
+        - Type 'exit' to close the app.
+        - Type 'home' to return to this menu.
+        - Type 'clear' to start fresh.
+    """)
+    app.after(100, lambda: intro_txt(intro_message, input_text))
+    app.after(100, lambda: speak_text(intro_message))
+    input_text.after(30000, lambda: input_text.delete("1.0", "end"))
 
 
 def show_media_screen():
@@ -128,158 +252,26 @@ def show_media_screen():
     )
     delete_button.pack(side="left", padx=10)
 
-    # Back button to return to main screen
+    # Back button to return to the main screen
     back_button = ctk.CTkButton(
         action_buttons_frame,
         text="Home",
-        command=show_main_screen,
+        command=initialize_main_screen,
         fg_color="orange",
         hover_color="darkorange",
         corner_radius=15,
         font=("Helvetica", 18),
         cursor="hand2"
     )
-    back_button.pack(side='left', padx=10,pady=10)
-
-def show_main_screen():
-    """Switches back to the main screen."""
-    clear_frame(main_frame)
-    initialize_main_content()
-
-
-def clear_frame(frame):
-    """Clears all widgets from a frame."""
-    for widget in frame.winfo_children():
-        widget.destroy()
-
-
-def initialize_main_content():
-    """Initializes the main screen content."""
-    # Grid configuration for main_frame
-    main_frame.grid_columnconfigure((0, 1), weight=1)
-    main_frame.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=1)
-
-    # Sidebar for buttons
-    sidebar_frame = ctk.CTkFrame(main_frame, fg_color="#D3D3D3", corner_radius=10)
-    sidebar_frame.grid(row=0, column=0, rowspan=6, sticky="nsew", padx=(0, 10), pady=10)
-
-    # Buttons in sidebar
-    convert_button = ctk.CTkButton(
-        sidebar_frame,
-        text="Convert",
-        command=on_convert_button_click,
-        font=("Helvetica", 20),
-        width=120,
-        height=50,
-        fg_color="green",
-        hover_color="darkgreen",
-        corner_radius=15,
-        cursor="hand2"
-    )
-    convert_button.pack(pady=10, padx=10)
-
-    # ComboBox for voice selection
-    global voices_combobox  # Ensure voices_combobox is accessible globally
-    voices_combobox = ctk.CTkComboBox(
-        sidebar_frame,
-        values=list(voice_mapping.keys()),  # Use the names from the voice_mapping
-        width=120,
-        height=50,
-        border_color='#DAA520',
-        corner_radius=15,
-        fg_color="gray",
-        button_color="#DAA520",
-        button_hover_color="#FFA500",
-    )
-    voices_combobox.pack(pady=10, padx=10)
-
-    # Play button
-    global play_button  # Ensure play_button is accessible globally
-    play_button = ctk.CTkButton(
-        sidebar_frame,
-        text="▶ Play",
-        width=120,
-        height=50,
-        command=play_audio_from_button,
-        fg_color="blue",
-        hover_color="darkblue",
-        corner_radius=15,
-        font=("Helvetica", 20),
-        cursor="hand2"
-    )
-    play_button.pack(pady=10, padx=10)
-    play_button.saved_file_path = None
-
-    # Media button to switch to Media screen
-    media_button = ctk.CTkButton(
-        sidebar_frame,
-        text="Medias",
-        width=120,
-        height=50,
-        command=show_media_screen,
-        fg_color="red",
-        hover_color="darkred",
-        corner_radius=15,
-        font=("Helvetica", 20),
-        cursor="hand2"
-    )
-    media_button.pack(pady=10, padx=10)
-# download btn
-    download_button = ctk.CTkButton(sidebar_frame, text="Download",
-                                    width=120, height=50,
-                                    fg_color="orange", hover_color="darkorange",
-                                    corner_radius=15, font=("Helvetica", 20),
-                                    cursor="hand2")
-    download_button.pack(pady=10, padx=10)
-    #new btn
-    new_project_button = ctk.CTkButton(sidebar_frame, text="New",
-                                       width=120, height=50,
-                                       fg_color="purple", hover_color="darkpurple",
-                                       corner_radius=15, font=("Helvetica", 20),
-                                       cursor="hand2")
-    new_project_button.pack(pady=10, padx=10)
-    #share btn
-    share_button = ctk.CTkButton(sidebar_frame, text="Share",
-                                 width=120, height=50,
-                                 fg_color="#00CED1", hover_color="#20B2AA",
-                                 corner_radius=15, font=("Helvetica", 20),
-                                 cursor="hand2")
-    share_button.pack(pady=10, padx=10)
-    # Main Textbox
-    global input_text
-    input_text = ctk.CTkTextbox(main_frame, width=400, height=400,
-                                corner_radius=10, font=("Helvetica", 18))
-    input_text.grid(row=0, column=1, rowspan=6, sticky="nsew", padx=10, pady=10)
-    input_text.bind("<Return>", handle_enter)
-
-    # Display intro text
-    intro_message = textwrap.dedent("""\
-        Welcome to Ready My Voice – your personalized voiceover assistant!
-        Here's how you can make the most of your experience:
-        - Type 'help' to explore the app's features and take a quick tour of what Ready My Voice can do.
-        - Type 'exit' anytime to close the application if you're done for now.
-        - Type 'home' to return to this menu and get back on track quickly.
-        - Type 'clear' to wipe the console and start fresh whenever you need a clean slate.
-        """)
-
-    app.after(100, lambda: intro_txt(intro_message, input_text))
-    app.after(100, lambda: speak_text(intro_message)) # Speak intro
-    input_text.after(50000, lambda: input_text.delete("1.0", "end"))  # Clear after 60sec
-
-
-# Initialize the main window
-app = ctk.CTk()
-app.geometry("800x600")
-app.resizable(width=False, height=False)
-app.title("Ready My Voice")
+    back_button.pack(side="left", padx=10, pady=10)
 
 # Main frame for dynamic content
-main_frame = ctk.CTkFrame(app, fg_color="#F0F0F0", corner_radius=10)
+main_frame = ctk.CTkFrame(app, fg_color="#0A3D62", corner_radius=10)
 main_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-# Load the main screen
-initialize_main_content()
+# Load main screen
+initialize_main_screen()
 
 # Run the app
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.mainloop()
