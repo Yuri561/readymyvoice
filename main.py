@@ -75,7 +75,7 @@ def initialize_sidebar(parent_frame):
     """Create and initialize the sidebar with buttons."""
     sidebar_frame = ctk.CTkFrame(parent_frame, fg_color="transparent", corner_radius=10)
     sidebar_frame.grid(row=0, column=0, rowspan=6, sticky="nsew", padx=(0, 10), pady=10)
-
+    global voices_combobox, play_button
     # Sidebar Buttons
     button_configs = [
         {"text": "Convert", "command": on_convert_button_click, "color": "#FFC107"},
@@ -86,7 +86,7 @@ def initialize_sidebar(parent_frame):
         {"text": "Exit", "command": lambda: app.destroy(), "color": "#FFC107"}
     ]
 
-    global voices_combobox, play_button
+    # global voices_combobox, play_button
     for config in button_configs:
         button = ctk.CTkButton(
             sidebar_frame,
@@ -116,20 +116,20 @@ def initialize_sidebar(parent_frame):
     )
     voices_combobox.pack(pady=10, padx=10)
 
-    # Play button
-    # play_button = ctk.CTkButton(
-    #     sidebar_frame,
-    #     text="▶ Play",
-    #     command=play_audio_from_button,
-    #     font=FONT_LARGE,
-    #     fg_color="blue",
-    #     hover_color="darkblue",
-    #     corner_radius=15,
-    #     cursor="hand2",
-    #     **SIDEBAR_BUTTON_DIMENSIONS
-    # )
-    # play_button.pack(pady=10, padx=10)
-    # play_button.saved_file_path = None
+    #Play button
+    play_button = ctk.CTkButton(
+        sidebar_frame,
+        text="▶ Play",
+        command=play_audio_from_button,
+        font=FONT_LARGE,
+        fg_color="blue",
+        hover_color="darkblue",
+        corner_radius=15,
+        cursor="hand2",
+        **SIDEBAR_BUTTON_DIMENSIONS
+    )
+    play_button.pack(pady=10, padx=10)
+    play_button.saved_file_path = None
 
 
 def initialize_main_screen():
